@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gui
+  namespace: sai
+  labels:
+    app: gui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gui
+  template:
+    metadata:
+      labels:
+        app: gui
+    spec:
+      containers:
+      - name: gui
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-index-file
+          mountPath: /usr/share/nginx/html/
+      volumes:
+      - name: nginx-index-file
+        configMap:
+          name: index-html-configmap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gui
+  namespace: sai
+spec:
+  selector:
+    app: gui
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: index-html-configmap
+  namespace: sai
+data:
+  index.html: |
+    <html>
+      <h1>SAI</h1>
+      </br>
+      <h2>This awesome GUI acts as a proxy for the backend server</h2>
+
+      <form method="get" action="http://localhost:8000/stress">
+        <label for="stime">What should be the stress time (in seconds)?</label><br>
+        <input type="text" id="stime" name="time" value="30"><br><br>
+        <input type="submit" value="Submit">
+      </form>
+    </html
